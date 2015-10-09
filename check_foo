@@ -1,0 +1,11 @@
+#!/bin/bash
+
+FOOED_STATUS=${1:-0}
+
+EXIT_TEXT[0]="OK - this is a foo status"
+EXIT_TEXT[1]="WARNING - this is a foo status"
+EXIT_TEXT[2]="CRITICAL - this is a foo status"
+EXIT_TEXT[3]="UNKNOWN - this is a foo status"
+
+echo ${EXIT_TEXT[${FOOED_STATUS}]}
+exit $FOOED_STATUS
