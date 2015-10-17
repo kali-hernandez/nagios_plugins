@@ -10,7 +10,9 @@ graphite monitoring system in place and want to set alerts through nagios
 without duplication of scripts running locally, and setting nrpe or ssh checks.
 
 Requires running graphite. Allows https interfaces with user authentication.
-Allows lo/hi thresholds for alerts.
+Allows lo/hi thresholds for alerts. Allows for hysteresis margins.
+
+Check command help for more details on usage.
 
 Set a service check similar to this:
 
