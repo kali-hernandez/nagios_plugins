@@ -20,8 +20,8 @@ declare -a IMG_ATTACHMENTS
 
 # Merge macro env variables to work seamlessly with nagios or icinga1
 while read -r line ; do
-	k=`sed 's/=.*$//;s/\(NAGIOS_\|ICINGA_\)/MACRO_/' <<< "$line"`
-	v=`sed 's/^.*=//' <<< "$line"`
+	k=`sed 's/=.*$//;s/\(NAGIOS_\|ICINGA_\)/MACRO_/' <<< ${line%%=*}`
+	v=${line#*=}
 	export ${k}="${v}"
 done < <(env | grep "^ICINGA\|^NAGIOS")
 
