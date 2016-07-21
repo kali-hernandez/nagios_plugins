@@ -3,6 +3,28 @@
 # S.M.A.R.T. checker based on smartmontools
 # by kali
 #
+###################################################################################
+#
+# This script checks on known bad sectors smart attributes
+# (currently 197 --> pending sectors, 198 --> offline uncorrectable).
+#
+# It also checks on smartctl return status for failed drives, bad command
+# responses, etc. Additionally it checks the number of self-test failures reported.
+#
+# It returns WARNING state on attribute errors, and CRITICAL state for failed SMART
+# commands to the drive or self-test failures.
+#
+# Requires execution as root, either for the script as a whole or for
+# smartd/smartctl commands so you will most likely need to add a couple of lines to
+# your sudoers files. If you want to issue 'sudo' to smartd/smartctl commands (and
+# not grant sudo for this script) use the '-s' parameter to force this behaviour.
+#
+# Additionally you will need to schedule self-tests on your hard drives. This can
+# be achieved by configuring smartd service, or by setting your own cronjobs.
+# Not scheduling self-tests will result in non detection of this kind of errors.
+#
+###################################################################################
+
 
 # Define exit functions
 exit_ok() { echo "OK - ${CHECK_OUTPUT}" ; exit 0 ; }
@@ -25,8 +47,9 @@ exit_unk() {
 
 show_usage() {
 cat << EOF
-Usage: $0 [-U <exit_code>] [-q] [-d]
+Usage: $0 [-U <exit_code>] [-q] [-d] [-s]
 -u|--unknown_returns <code> : Force UNKNOWN status return this <code> instead of 3
+-s|--sudo                   : Call smartd/smartctl binaries with sudo
 -q|--quiet                  : Quiet output: does not include check results in output unless in failure
 -d|--debug                  : Enable bash debugging (set -x)
 -h|--help                   : Show this help
@@ -40,6 +63,9 @@ while (( "$#" )) ; do
 		-u|--unknown_returns)
 			EXIT_UNKNOWN=${2}
 			shift
+		;;
+		-s|--sudo)
+			SUDO_RUN="1"
 		;;
 		-q|--quiet)
 			REPORT_QUIET="1"
@@ -67,9 +93,12 @@ if [ ! -x $SMARTD -o ! -x $SMARTCTL ] ; then
 	CHECK_OUTPUT="Can't find smartd/smartctl, is smartmontools installed?"
 	exit_unk
 fi
-# Check will most likely run as non-root. Sudo needed for this script or the smartd/smartctl bins. You might want to adjust this
-SMARTD="sudo /usr/sbin/smartd"
-SMARTCTL="sudo /usr/sbin/smartctl"
+
+# Set binaries to run with sudo if requested so
+if [ "$SUDO_RUN" == "1" ] ; then
+	SMARTD="sudo /usr/sbin/smartd"
+	SMARTCTL="sudo /usr/sbin/smartctl"
+fi
 
 ## BEGIN ##
 
