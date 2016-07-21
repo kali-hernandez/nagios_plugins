@@ -127,22 +127,26 @@ for DEVICE in $DEVICES ; do
 	SMART_RET=$?
 	# exit on known smart complete failures
 	if [[ $(($SMART_RET & 2)) -gt 0 ]] ; then
-		CHECK_OUTPUT="$DEVICE open command failed."
-		exit_cri
+		CHECK_OUTPUT+="$DEVICE open command failed ; "
+		STATUS_CRITICAL="1"
+		continue
 	fi
 	if [[ $(($SMART_RET & 4)) -gt 0 ]] ; then
-		CHECK_OUTPUT="$DEVICE is not accepting SMART commands, most likely dead"
-		exit_cri
+		CHECK_OUTPUT+="$DEVICE is not accepting SMART commands, most likely dead ; "
+		STATUS_CRITICAL="1"
+		continue
 	fi
 	if [[ $(($SMART_RET & 8)) -gt 0 ]] ; then
-		CHECK_OUTPUT="$DEVICE SMART status check returned 'DISK FAILING'"
-		exit_cri
+		CHECK_OUTPUT+="$DEVICE SMART status check returned 'DISK FAILING' ; "
+		STATUS_CRITICAL="1"
+		continue
 	fi
 	# get device smart attributes to be parsed
 	SMART_ATTRS=$($SMARTCTL -A $DEVICE)
 	if [ $? -ne 0 ] ; then
-		CHECK_OUTPUT="$DEVICE retrieval for SMART attributes failed."
-		exit_cri
+		CHECK_OUTPUT="$DEVICE retrieval for SMART attributes failed ; "
+		STATUS_CRITICAL="1"
+		continue
 	fi
 
 	# find status file associated with the device, for fetching number of self test errors (not available in smart_attrs)
@@ -167,7 +171,8 @@ for DEVICE in $DEVICES ; do
 	[ $SECTOR_ERRORS -gt 0 ] && STATUS_WARNING="1"
 
 	# add device information to the output for clarity
-	if [ "$REPORT_QUIET" != "1" -o $SELF_TEST_ERRORS -gt 0 -o $SECTOR_ERRORS -gt 0 ] ; then
+	[ "$STATUS_WARNING" == "1" -o "$STATUS_CRITICAL" == "1" ] && REPORT_ME="1"
+	if [ "$REPORT_QUIET" != "1" -a "$REPORT_ME" == "1" ] ; then
 		CHECK_OUTPUT+="$DEVICE: self_test_errors=$SELF_TEST_ERRORS"
 
 		# add more lines here if more smart attributes are considered
