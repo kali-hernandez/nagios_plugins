@@ -119,7 +119,7 @@ case "$?" in
 	;;
 esac
 
-DEVICES=$(sed -n 's/Device: \(\/dev\/sd[a-z]\).*/\1/p' <<< "$ONECHECK_OUT" | sort -u)
+DEVICES=$(smartctl --scan-open | grep "ATA device" | grep -vi raid | awk '{print $1}' | sort -u)
 
 for DEVICE in $DEVICES ; do
 	# get overall smartctl status code
@@ -172,7 +172,7 @@ for DEVICE in $DEVICES ; do
 
 	# add device information to the output for clarity
 	[ "$STATUS_WARNING" == "1" -o "$STATUS_CRITICAL" == "1" ] && REPORT_ME="1"
-	if [ "$REPORT_QUIET" != "1" -a "$REPORT_ME" == "1" ] ; then
+	if [ "$REPORT_QUIET" != "1" -o "$REPORT_ME" == "1" ] ; then
 		CHECK_OUTPUT+="$DEVICE: self_test_errors=$SELF_TEST_ERRORS"
 
 		# add more lines here if more smart attributes are considered
