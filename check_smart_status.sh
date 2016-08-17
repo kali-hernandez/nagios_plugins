@@ -133,7 +133,7 @@ for DEVICE in $DEVICES ; do
 	fi
 
 	# parse smart attributes we want to monitor. more can be added here
-	ATA_ERRORS=$(awk '{print $NF}' < <(grep "ATA Error Count" <<< "$SMART_FULL" || echo "0"))
+	ATA_ERRORS=$(sed -r 's/.*Count: ([^ ]+).*/\1/' < <(grep "^ATA Error Count:" <<< "$SMART_FULL" || echo "0"))
 	PENDING_ERRORS=$(awk '{print $NF}' < <(grep "^197 " <<< "$SMART_FULL" || echo "0"))
 	UNCORRECTABLE_ERRORS=$(awk '{print $NF}' < <(grep "^198 " <<< "$SMART_FULL" || echo "0"))
 
