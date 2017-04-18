@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-#nice apt-get -s -o Debug::NoLocking=true upgrade | grep ^Inst 
+#nice apt-get -s -o Debug::NoLocking=true upgrade | grep ^Inst
 
 import apt_pkg
 import os
@@ -15,7 +15,7 @@ DISTRO = subprocess.Popen(["lsb_release","-c","-s"],
                           stdout=subprocess.PIPE).communicate()[0].strip()
 
 class OpNullProgress(object):
-    def update(self, percent):
+    def update(self, percent=None):
         pass
     def done(self):
         pass
@@ -107,7 +107,7 @@ def init():
     # force apt to build its caches in memory for now to make sure
     # that there is no race when the pkgcache file gets re-generated
     apt_pkg.config.set("Dir::Cache::pkgcache","")
-    
+
 def run(options=None):
 
     # we are run in "are security updates installed automatically?"
@@ -162,9 +162,12 @@ def run(options=None):
         cand_ver = depcache.get_candidate_ver(pkg)
         if cand_ver == inst_ver:
             continue
+	# ignore packages not previously installed (these are dependencies, not upgrades, and would otherwise raise false criticals at new packages)
+        if inst_ver is None:
+            continue
 
         # check for security updates
-        updates = updates + 1	
+        updates = updates + 1
         updates_list += ("%s; " % pkg.name)
         if not isSecurityUpgrade(cand_ver):
             non_security_updates_list += ("%s, " % pkg.name)
@@ -174,7 +177,7 @@ def run(options=None):
             security_updates += 1
             continue
 
-        # now check for security updates that are masked by a 
+        # now check for security updates that are masked by a
         # canidate version from another repo (-proposed or -updates)
         for ver in pkg.version_list:
             if (inst_ver and apt_pkg.version_compare(ver.ver_str, inst_ver.ver_str) <= 0):
@@ -195,7 +198,7 @@ def run(options=None):
     elif options and options.readable_output:
         write_human_readable_summary(sys.stdout, updates, security_updates)
     else:
-        # print the number of regular updates and the number of 
+        # print the number of regular updates and the number of
         # security updates
         sys.stderr.write("%s;%s" % (updates,security_updates))
 
