@@ -91,11 +91,11 @@ def write_nagios_output(total_updates,crit_updates,crit_updates_list,soft_update
     sys.stdout.write("%s: %s Total upgradable pagckages" % (nagios_status,total_updates))
     if total_updates > 0:
         sys.stdout.write(" || %s critical" % (crit_updates))
-        if crit_updates > 0:
+        if crit_updates > 0 and options and not options.hide_package_names:
             sys.stdout.write(" (%s)" % (crit_updates_list))
         if not critonly:
             sys.stdout.write(" || %s non-critical" % (soft_updates))
-            if soft_updates > 0:
+            if soft_updates > 0 and options and not options.hide_package_names:
                 sys.stdout.write(" (%s)" % (soft_updates_list))
     sys.stdout.write("\n")
     sys.exit(nagios_exitcode)
@@ -207,11 +207,11 @@ def run(options=None):
     return(updates,security_updates)
 
 
-if __name__ == "__main__":        
+if __name__ == "__main__":
     # setup a exception handler to make sure that uncaught stuff goes
     # to the notifier
     sys.excepthook = _handleException
-    
+
     # gettext
     APP="update-notifier"
     DIR="/usr/share/locale"
@@ -239,6 +239,11 @@ if __name__ == "__main__":
                       action="store_true",
                       dest="critical_only",
                       help=_("Warn only about critical updates"))
+    parser.add_option("-q",
+                      "--quiet",
+                      action="store_true",
+                      dest="hide_package_names",
+                      help=_("Quiet output: hide the names of packages that are pending upgrades"))
     (options, args) = parser.parse_args()
 
     options.nagios_mode = "forcing nagios mode is fun"
