@@ -93,9 +93,10 @@ def write_nagios_output(total_updates,crit_updates,crit_updates_list,soft_update
         sys.stdout.write(" || %s critical" % (crit_updates))
         if crit_updates > 0:
             sys.stdout.write(" (%s)" % (crit_updates_list))
-        sys.stdout.write(" || %s non-critical" % (soft_updates))
-        if soft_updates > 0:
-            sys.stdout.write(" (%s)" % (soft_updates_list))
+        if not critonly:
+            sys.stdout.write(" || %s non-critical" % (soft_updates))
+            if soft_updates > 0:
+                sys.stdout.write(" (%s)" % (soft_updates_list))
     sys.stdout.write("\n")
     sys.exit(nagios_exitcode)
 
